@@ -39,7 +39,6 @@ pub struct Clock {
 const OFF: RGB8 = RGB8::new(0, 0, 0);
 const RED: RGB8 = RGB8::new(255, 0, 0);
 const GREEN: RGB8 = RGB8::new(0, 255, 0);
-const BLUE: RGB8 = RGB8::new(0, 0, 255);
 
 impl Clock {
     fn start(&mut self) {
@@ -68,11 +67,12 @@ impl Clock {
         self.current += 1;
 
         let elapsed = (self.current - self.started) / 2;
-        if self.current & 1 == 0 {
-            defmt::info!("{}", elapsed);
-        }
-        let minutes = elapsed;
+        let minutes = elapsed / 60;
         const H: u64 = 60;
+
+        if self.current % 2 == 0 {
+            defmt::info!("tick: {}", elapsed);
+        }
 
         if self.started == 0 || minutes >= 10*H + 55 + 15 {
             // overtime, switch off
@@ -88,6 +88,11 @@ impl Clock {
         }
         if minutes >= 6*H + 40 {
             buf[12] = OFF;
+        } else if minutes >= 6*H {
+            // blink during break
+            if elapsed % 2 == 1 {
+                buf[12] = OFF;
+            }
         }
         for i in 0..4 {
             if minutes >= 6*H + 40 + 30 + i as u64*30 {
@@ -96,6 +101,11 @@ impl Clock {
         }
         if minutes >= 8*H + 55 {
             buf[17] = OFF;
+        } else if minutes >= 8*H + 40 {
+            // blink during break
+            if elapsed % 2 == 1 {
+                buf[17] = OFF;
+            }
         }
         for i in 0..4 {
             if minutes >= 8*H + 55 + 30 + i as u64*30 {
@@ -108,12 +118,6 @@ impl Clock {
             if self.current % 2 == 1 {
                 buf = [RED; 24];
             }
-        }
-
-        if elapsed % 2 == 1 {
-            buf[22] = BLUE;
-        } else {
-            buf[23] = BLUE;
         }
 
         buf
