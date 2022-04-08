@@ -38,6 +38,8 @@ pub struct Clock {
 
 const OFF: RGB8 = RGB8::new(0, 0, 0);
 const RED: RGB8 = RGB8::new(255, 0, 0);
+const PINK: RGB8 = RGB8::new(200, 0, 200);
+const BLUE: RGB8 = RGB8::new(0, 0, 255);
 const GREEN: RGB8 = RGB8::new(0, 255, 0);
 
 impl Clock {
@@ -51,16 +53,16 @@ impl Clock {
     fn tick(&mut self) -> [RGB8; 24] {
         let mut buf = [
             // 0-11  first 6 hours
-            RED, RED, RED, RED, RED, RED, RED, RED, RED, RED, RED, RED,
+            BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE,
             // 12    lunch
             GREEN,
-            // 13-16 6-8 hours
-            RED, RED, RED, RED,
-            // 17    coffee
+            // 13-18 6-9 hours
+            BLUE, BLUE, BLUE, BLUE, PINK, PINK,
+            // 19    coffee
             GREEN,
-            // 18-21 8-10 hours
-            RED, RED, RED, RED,
-            // 22-23 to indicate activity (seconds)
+            // 20-21 9-10 hours
+            PINK, PINK,
+            // 22-23 spare
             OFF, OFF
         ];
 
@@ -94,23 +96,31 @@ impl Clock {
                 buf[12] = OFF;
             }
         }
-        for i in 0..4 {
+        for i in 0..6 {
             if minutes >= 6*H + 40 + 30 + i as u64*30 {
                 buf[13+i] = OFF;
             }
         }
-        if minutes >= 8*H + 55 {
-            buf[17] = OFF;
-        } else if minutes >= 8*H + 40 {
+        if minutes >= 9*H + 55 {
+            buf[19] = OFF;
+        } else if minutes >= 9*H + 40 {
             // blink during break
             if elapsed % 2 == 1 {
-                buf[17] = OFF;
+                buf[19] = OFF;
             }
         }
-        for i in 0..4 {
-            if minutes >= 8*H + 55 + 30 + i as u64*30 {
-                buf[18+i] = OFF;
+        for i in 0..2 {
+            if minutes >= 9*H + 55 + 30 + i as u64*30 {
+                buf[20+i] = OFF;
             }
+        }
+
+        if minutes >= 10*H + 45 {
+            // almost overtime, show warning
+            buf[22] = RED;
+        }
+        if minutes >= 10*H + 50 {
+            buf[23] = RED;
         }
 
         if minutes >= 10*H + 55 {
