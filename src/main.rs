@@ -152,7 +152,7 @@ mod app {
                                    (pins::PB3<mode::Alt5>,
                                     pins::PB4<mode::Alt5>,
                                     pins::PB5<mode::Alt5>)>>,
-        button: pins::PA0<mode::In>,
+        button: pins::PB6<mode::In>,
         clkout: pins::PA8<mode::Out>,
     }
 
@@ -173,7 +173,7 @@ mod app {
         let mut user_led = gpiob.pb8.into_push_pull_output();
         user_led.set_low().unwrap();
 
-        let mut button = gpioa.pa0.into_pull_down_input();
+        let mut button = gpiob.pb6.into_pull_down_input();
         button.make_interrupt_source(&mut syscfg);
         button.trigger_on_edge(&mut peri.EXTI, SignalEdge::Rising);
         button.enable_interrupt(&mut peri.EXTI);
@@ -213,7 +213,7 @@ mod app {
         }
     }
 
-    #[task(binds = EXTI0, shared = [clock], local = [button])]
+    #[task(binds = EXTI9_5, shared = [clock], local = [button])]
     fn button(mut cx: button::Context) {
         cx.shared.clock.lock(|v| v.start());
         cx.local.button.clear_interrupt_pending_bit();
